@@ -89,6 +89,69 @@
           font-size: 14px;
         }
       }
+
+      .container {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: 100vh;
+      }
+
+      .converter {
+        margin-right: 20px;
+      }
+
+      .accordion-container {
+        position: fixed;
+        right: -300px;
+        top: 0;
+        width: 300px;
+        height: 100%;
+        transition: right 0.3s ease-in-out;
+        background-color: #fff;
+        box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+      }
+
+      .accordion-container.open {
+        right: 0;
+      }
+
+      .accordion-toggle {
+        position: absolute;
+        left: -40px;
+        top: 50%;
+        transform: rotate(-90deg) translateX(-50%);
+        transform-origin: left top;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        padding: 10px;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+
+      .accordion-content {
+        height: 100%;
+        overflow-y: auto;
+        padding: 20px;
+      }
+
+      .number-chart {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .number-chart th,
+      .number-chart td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: left;
+      }
+
+      .number-chart th {
+        background-color: #f0f0f0;
+        font-weight: bold;
+      }
     </style>
     <script>
       const japaneseNumbers = {
@@ -275,6 +338,21 @@
           exchangeRateDisplay.style.display = "none";
         }
       }
+      function toggleAccordion() {
+        const accordionContainer = document.querySelector(
+          ".accordion-container"
+        );
+        accordionContainer.classList.toggle("open");
+      }
+
+      window.onload = function () {
+        displayExchangeRate();
+        updateUI();
+
+        // Add event listener for accordion toggle
+        const accordionToggle = document.querySelector(".accordion-toggle");
+        accordionToggle.addEventListener("click", toggleAccordion);
+      };
 
       window.onload = function () {
         displayExchangeRate();
@@ -283,32 +361,105 @@
     </script>
   </head>
   <body>
-    <div class="converter">
-      <h1>Currency Converter and Number Translator</h1>
-      <div class="exchange-rate" id="exchange-rate"></div>
-      <select id="mode" onchange="updateUI()">
-        <option value="currency">Currency Conversion</option>
-        <option value="number">Number Translation</option>
-      </select>
-      <input
-        type="text"
-        id="amount"
-        placeholder="Enter amount"
-        required
-        oninput="handleInput(event)"
-      />
-      <div id="currency-options">
-        <select id="currency">
-          <option value="usd">USD to JPY</option>
-          <option value="jpy">JPY to USD</option>
+    <div class="container">
+      <div class="converter">
+        <h1>Currency Converter and Number Translator</h1>
+        <div class="exchange-rate" id="exchange-rate"></div>
+        <select id="mode" onchange="updateUI()">
+          <option value="currency">Currency Conversion</option>
+          <option value="number">Number Translation</option>
         </select>
+        <input
+          type="text"
+          id="amount"
+          placeholder="Enter amount"
+          required
+          oninput="handleInput(event)"
+        />
+        <div id="currency-options">
+          <select id="currency">
+            <option value="usd">USD to JPY</option>
+            <option value="jpy">JPY to USD</option>
+          </select>
+        </div>
+        <button onclick="convertCurrency()">Convert</button>
+        <div class="result">
+          <p><span>Result:</span> <span id="result"></span></p>
+          <p><span>Kanji:</span> <span id="kanji"></span></p>
+          <p><span>Hiragana:</span> <span id="hiragana"></span></p>
+          <p><span>Romaji:</span> <span id="romaji"></span></p>
+        </div>
       </div>
-      <button onclick="convertCurrency()">Convert</button>
-      <div class="result">
-        <p><span>Result:</span> <span id="result"></span></p>
-        <p><span>Kanji:</span> <span id="kanji"></span></p>
-        <p><span>Hiragana:</span> <span id="hiragana"></span></p>
-        <p><span>Romaji:</span> <span id="romaji"></span></p>
+      <div class="accordion-container">
+        <button class="accordion-toggle">Japanese Number Chart</button>
+        <div class="accordion-content">
+          <table class="number-chart">
+            <thead>
+              <tr>
+                <th>Kanji</th>
+                <th>Hiragana</th>
+                <th>English</th>
+                <th>Number</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>零</td>
+                <td>れい</td>
+                <td>Zero</td>
+                <td>0</td>
+              </tr>
+              <tr>
+                <td>一</td>
+                <td>いち</td>
+                <td>One</td>
+                <td>1</td>
+              </tr>
+              <tr>
+                <td>十</td>
+                <td>じゅう</td>
+                <td>Ten</td>
+                <td>10</td>
+              </tr>
+              <tr>
+                <td>百</td>
+                <td>ひゃく</td>
+                <td>Hundred</td>
+                <td>100</td>
+              </tr>
+              <tr>
+                <td>千</td>
+                <td>せん</td>
+                <td>Thousand</td>
+                <td>1,000</td>
+              </tr>
+              <tr>
+                <td>万</td>
+                <td>まん</td>
+                <td>Ten Thousand</td>
+                <td>10,000</td>
+              </tr>
+              <tr>
+                <td>億</td>
+                <td>おく</td>
+                <td>Hundred Million</td>
+                <td>100,000,000</td>
+              </tr>
+              <tr>
+                <td>兆</td>
+                <td>ちょう</td>
+                <td>Trillion</td>
+                <td>1,000,000,000,000</td>
+              </tr>
+              <tr>
+                <td>京</td>
+                <td>けい</td>
+                <td>Quadrillion</td>
+                <td>10,000,000,000,000,000</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </body>
