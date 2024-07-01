@@ -95,7 +95,6 @@
         background-color: #fff;
         box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
         z-index: 1000;
-        overflow-y: auto;
       }
 
       .accordion-container.open {
@@ -103,8 +102,8 @@
       }
 
       .accordion-toggle {
-        position: fixed;
-        right: 0;
+        position: absolute;
+        left: -40px;
         top: 50%;
         transform: translateY(-50%);
         background-color: #007bff;
@@ -115,12 +114,15 @@
         white-space: nowrap;
         writing-mode: vertical-rl;
         text-orientation: mixed;
-        z-index: 1001;
-        width: 4em;
-        user-select: none; /* Prevent text selection */
-        -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
-        touch-action: manipulation; /* Improve touch behavior */
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+        width: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
+
       .accordion-content {
         height: 100%;
         overflow-y: auto;
