@@ -338,6 +338,7 @@
           exchangeRateDisplay.style.display = "none";
         }
       }
+
       function toggleAccordion() {
         const accordionContainer = document.querySelector(
           ".accordion-container"
@@ -352,11 +353,6 @@
         // Add event listener for accordion toggle
         const accordionToggle = document.querySelector(".accordion-toggle");
         accordionToggle.addEventListener("click", toggleAccordion);
-      };
-
-      window.onload = function () {
-        displayExchangeRate();
-        updateUI();
       };
     </script>
   </head>
