@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Currency Converter</title>
+    <title>Currency Converter and Number Translator</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            background-color: #f0f0f0;
+            min-height: 100vh;
         }
         .converter {
             width: 100%;
@@ -22,23 +23,32 @@
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        input, select {
-            width: calc(100% - 20px);
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+        h1 {
+            text-align: center;
+            color: #333;
         }
-        button {
+        input, select, button {
             width: 100%;
             padding: 15px;
             margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        select {
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 15px top 50%;
+            background-size: 12px auto;
+        }
+        button {
             background-color: #007BFF;
             color: #fff;
             border: none;
-            border-radius: 5px;
-            font-size: 1em;
             cursor: pointer;
+            transition: background-color 0.3s;
         }
         button:hover {
             background-color: #0056b3;
@@ -47,103 +57,93 @@
             margin-top: 20px;
         }
         .exchange-rate {
-            font-size: 2em;
+            font-size: 1.2em;
             font-weight: bold;
             text-align: center;
             margin-bottom: 20px;
+            color: #007BFF;
         }
         .result p {
             margin: 10px 0;
+            font-size: 16px;
         }
-        .result p span {
+        .result p span:first-child {
             font-weight: bold;
+            color: #333;
         }
-        @media (min-width: 768px) {
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
             .converter {
-                width: 50%;
+                padding: 15px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            input, select, button {
+                font-size: 14px;
             }
         }
     </style>
     <script>
-        const romajiDict = {
-            ".": "ten", "0": "zero", "1": "ichi", "2": "ni", "3": "san", "4": "yon",
-            "5": "go", "6": "roku", "7": "nana", "8": "hachi", "9": "kyuu", "10": "juu",
-            "100": "hyaku", "1000": "sen", "10000": "man", "100000000": "oku",
-            "300": "sanbyaku", "600": "roppyaku", "800": "happyaku", "3000": "sanzen", "8000": "hassen", "01000": "issen"
+        const japaneseNumbers = {
+            "0": { kanji: "零", hiragana: "れい", romaji: "rei" },
+            "1": { kanji: "一", hiragana: "いち", romaji: "ichi" },
+            "2": { kanji: "二", hiragana: "に", romaji: "ni" },
+            "3": { kanji: "三", hiragana: "さん", romaji: "san" },
+            "4": { kanji: "四", hiragana: "よん", romaji: "yon" },
+            "5": { kanji: "五", hiragana: "ご", romaji: "go" },
+            "6": { kanji: "六", hiragana: "ろく", romaji: "roku" },
+            "7": { kanji: "七", hiragana: "なな", romaji: "nana" },
+            "8": { kanji: "八", hiragana: "はち", romaji: "hachi" },
+            "9": { kanji: "九", hiragana: "きゅう", romaji: "kyū" },
+            "10": { kanji: "十", hiragana: "じゅう", romaji: "jū" },
+            "100": { kanji: "百", hiragana: "ひゃく", romaji: "hyaku" },
+            "1000": { kanji: "千", hiragana: "せん", romaji: "sen" },
+            "10000": { kanji: "万", hiragana: "まん", romaji: "man" },
+            "100000000": { kanji: "億", hiragana: "おく", romaji: "oku" },
+            "1000000000000": { kanji: "兆", hiragana: "ちょう", romaji: "chō" },
+            "10000000000000000": { kanji: "京", hiragana: "けい", romaji: "kei" }
         };
 
-        const kanjiDict = {
-            ".": "点", "0": "零", "1": "一", "2": "二", "3": "三", "4": "四",
-            "5": "五", "6": "六", "7": "七", "8": "八", "9": "九", "10": "十",
-            "100": "百", "1000": "千", "10000": "万", "100000000": "億",
-            "300": "三百", "600": "六百", "800": "八百", "3000": "三千", "8000": "八千", "01000": "一千"
-        };
-
-        const hiraganaDict = {
-            ".": "てん", "0": "ゼロ", "1": "いち", "2": "に", "3": "さん", "4": "よん",
-            "5": "ご", "6": "ろく", "7": "なな", "8": "はち", "9": "きゅう", "10": "じゅう",
-            "100": "ひゃく", "1000": "せん", "10000": "まん", "100000000": "おく",
-            "300": "さんびゃく", "600": "ろっぴゃく", "800": "はっぴゃく", "3000": "さんぜん", "8000": "はっせん", "01000": "いっせん"
-        };
-
-        const keyDict = { "kanji": kanjiDict, "hiragana": hiraganaDict, "romaji": romajiDict };
-
-        function convertNumberToJapanese(num, dict) {
-            if (num < 10) {
-                return dict[num];
-            } else if (num < 100) {
-                if (num % 10 === 0) {
-                    return dict[num / 10] + " " + dict[10];
-                } else {
-                    return dict[Math.floor(num / 10)] + " " + dict[10] + " " + dict[num % 10];
-                }
-            } else if (num < 1000) {
-                if (num % 100 === 0) {
-                    return dict[num / 100] + " " + dict[100];
-                } else {
-                    return dict[Math.floor(num / 100)] + " " + dict[100] + " " + convertNumberToJapanese(num % 100, dict);
-                }
-            } else if (num < 10000) {
-                if (num % 1000 === 0) {
-                    return dict[num / 1000] + " " + dict[1000];
-                } else {
-                    return dict[Math.floor(num / 1000)] + " " + dict[1000] + " " + convertNumberToJapanese(num % 1000, dict);
-                }
-            } else {
-                const man = Math.floor(num / 10000);
-                const rest = num % 10000;
-                if (rest === 0) {
-                    return convertNumberToJapanese(man, dict) + " " + dict[10000];
-                } else {
-                    return convertNumberToJapanese(man, dict) + " " + dict[10000] + " " + convertNumberToJapanese(rest, dict);
-                }
-            }
-        }
-
-        function convertNumberToJapaneseCorrected(num, dict) {
-            if (num === 0) return dict["0"];
-            let result = "";
+        function convertToJapanese(num) {
             const units = [
+                { value: 10000000000000000, kanji: "京", hiragana: "けい", romaji: "kei" },
+                { value: 1000000000000, kanji: "兆", hiragana: "ちょう", romaji: "chō" },
                 { value: 100000000, kanji: "億", hiragana: "おく", romaji: "oku" },
                 { value: 10000, kanji: "万", hiragana: "まん", romaji: "man" },
                 { value: 1000, kanji: "千", hiragana: "せん", romaji: "sen" },
                 { value: 100, kanji: "百", hiragana: "ひゃく", romaji: "hyaku" },
-                { value: 10, kanji: "十", hiragana: "じゅう", romaji: "juu" },
+                { value: 10, kanji: "十", hiragana: "じゅう", romaji: "jū" }
             ];
 
+            if (num === 0) return japaneseNumbers["0"];
+
+            let result = { kanji: "", hiragana: "", romaji: "" };
+
             for (const unit of units) {
-                const unitValue = Math.floor(num / unit.value);
-                if (unitValue > 0) {
-                    result += (unitValue > 1 ? convertNumberToJapaneseCorrected(unitValue, dict) + " " : "") + dict[unit.value] + " ";
-                    num -= unitValue * unit.value;
+                const count = Math.floor(num / unit.value);
+                if (count > 0) {
+                    if (count > 1) {
+                        result.kanji += japaneseNumbers[count.toString()].kanji;
+                        result.hiragana += japaneseNumbers[count.toString()].hiragana;
+                        result.romaji += japaneseNumbers[count.toString()].romaji + " ";
+                    }
+                    result.kanji += unit.kanji;
+                    result.hiragana += unit.hiragana;
+                    result.romaji += unit.romaji + " ";
+                    num %= unit.value;
                 }
             }
 
             if (num > 0) {
-                result += dict[num];
+                result.kanji += japaneseNumbers[num.toString()].kanji;
+                result.hiragana += japaneseNumbers[num.toString()].hiragana;
+                result.romaji += japaneseNumbers[num.toString()].romaji;
             }
 
-            return result.trim();
+            return result;
         }
 
         async function fetchExchangeRate() {
@@ -185,44 +185,73 @@
         }
 
         async function convertCurrency() {
-            const rateData = await fetchExchangeRate();
             const amount = parseFloat(document.getElementById("amount").value.replace(/,/g, ''));
-            const currency = document.getElementById("currency").value;
-            let result, kanji, hiragana, romaji;
+            const mode = document.getElementById("mode").value;
+            let result, japanese;
 
-            if (currency === "usd") {
-                result = Math.ceil(amount * rateData.JPY);
-                kanji = convertNumberToJapaneseCorrected(result, kanjiDict);
-                hiragana = convertNumberToJapaneseCorrected(result, hiraganaDict);
-                romaji = convertNumberToJapaneseCorrected(result, romajiDict);
+            if (mode === "currency") {
+                const rateData = await fetchExchangeRate();
+                const currency = document.getElementById("currency").value;
+
+                if (currency === "usd") {
+                    result = Math.ceil(amount * rateData.JPY);
+                } else {
+                    result = amount / rateData.JPY;
+                }
+
+                document.getElementById("result").textContent = formatNumberWithCommas(result.toFixed(2));
             } else {
-                result = amount / rateData.JPY;
-                kanji = convertNumberToJapaneseCorrected(Math.floor(result), kanjiDict);
-                hiragana = convertNumberToJapaneseCorrected(Math.floor(result), hiraganaDict);
-                romaji = convertNumberToJapaneseCorrected(Math.floor(result), romajiDict);
+                result = amount;
+                document.getElementById("result").textContent = formatNumberWithCommas(result);
             }
 
-            document.getElementById("result").textContent = formatNumberWithCommas(result.toFixed(2));
-            document.getElementById("kanji").textContent = kanji;
-            document.getElementById("hiragana").textContent = hiragana;
-            document.getElementById("romaji").textContent = romaji;
+            // Convert the result to Japanese for both currency and number modes
+            japanese = convertToJapanese(Math.floor(result));
+
+            document.getElementById("kanji").textContent = japanese.kanji;
+            document.getElementById("hiragana").textContent = japanese.hiragana;
+            document.getElementById("romaji").textContent = japanese.romaji;
         }
 
-        window.onload = displayExchangeRate;
+        function updateUI() {
+            const mode = document.getElementById("mode").value;
+            const currencyOptions = document.getElementById("currency-options");
+            const exchangeRateDisplay = document.getElementById("exchange-rate");
+
+            if (mode === "currency") {
+                currencyOptions.style.display = "block";
+                exchangeRateDisplay.style.display = "block";
+                displayExchangeRate();
+            } else {
+                currencyOptions.style.display = "none";
+                exchangeRateDisplay.style.display = "none";
+            }
+        }
+
+        window.onload = function() {
+            displayExchangeRate();
+            updateUI();
+        };
     </script>
 </head>
 <body>
     <div class="converter">
+        <h1>Currency Converter and Number Translator</h1>
         <div class="exchange-rate" id="exchange-rate"></div>
-        <h1>Currency Converter</h1>
-        <input type="text" id="amount" placeholder="Enter amount" required oninput="handleInput(event)">
-        <select id="currency">
-            <option value="usd">USD to JPY</option>
-            <option value="jpy">JPY to USD</option>
+        <select id="mode" onchange="updateUI()">
+            <option value="currency">Currency Conversion</option>
+            <option value="number">Number Translation</option>
         </select>
+        <input type="text" id="amount" placeholder="Enter amount" required oninput="handleInput(event)">
+        <div id="currency-options">
+            <select id="currency">
+                <option value="usd">USD to JPY</option>
+                <option value="jpy">JPY to USD</option>
+            </select>
+        </div>
         <button onclick="convertCurrency()">Convert</button>
         <div class="result">
-            <p><span>Converted Amount:</span> <span id="result"></span></p>
+            <p><span>Result:</span> <span id="result"></span></p>
             <p><span>Kanji:</span> <span id="kanji"></span></p>
             <p><span>Hiragana:</span> <span id="hiragana"></span></p>
             <p><span>Romaji:</span> <span id="romaji"></span></p>
