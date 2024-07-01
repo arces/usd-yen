@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .converter {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        input, select {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+        }
+        .exchange-rate {
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .result p {
+            margin: 10px 0;
+        }
+        .result p span {
+            font-weight: bold;
+        }
+        @media (min-width: 768px) {
+            .converter {
+                width: 50%;
+            }
+        }
+    </style>
+    <script>
+        const romajiDict = {
+            ".": "ten", "0": "zero", "1": "ichi", "2": "ni", "3": "san", "4": "yon",
+            "5": "go", "6": "roku", "7": "nana", "8": "hachi", "9": "kyuu", "10": "juu",
+            "100": "hyaku", "1000": "sen", "10000": "man", "100000000": "oku",
+            "300": "sanbyaku", "600": "roppyaku", "800": "happyaku", "3000": "sanzen", "8000": "hassen", "01000": "issen"
+        };
+
+        const kanjiDict = {
+            ".": "点", "0": "零", "1": "一", "2": "二", "3": "三", "4": "四",
+            "5": "五", "6": "六", "7": "七", "8": "八", "9": "九", "10": "十",
+            "100": "百", "1000": "千", "10000": "万", "100000000": "億",
+            "300": "三百", "600": "六百", "800": "八百", "3000": "三千", "8000": "八千", "01000": "一千"
+        };
+
+        const hiraganaDict = {
+            ".": "てん", "0": "ゼロ", "1": "いち", "2": "に", "3": "さん", "4": "よん",
+            "5": "ご", "6": "ろく", "7": "なな", "8": "はち", "9": "きゅう", "10": "じゅう",
+            "100": "ひゃく", "1000": "せん", "10000": "まん", "100000000": "おく",
+            "300": "さんびゃく", "600": "ろっぴゃく", "800": "はっぴゃく", "3000": "さんぜん", "8000": "はっせん", "01000": "いっせん"
+        };
+
+        const keyDict = { "kanji": kanjiDict, "hiragana": hiraganaDict, "romaji": romajiDict };
+
+        function convertNumberToJapanese(num, dict) {
+            if (num < 10) {
+                return dict[num];
+            } else if (num < 100) {
+                if (num % 10 === 0) {
+                    return dict[num / 10] + " " + dict[10];
+                } else {
+                    return dict[Math.floor(num / 10)] + " " + dict[10] + " " + dict[num % 10];
+                }
+            } else if (num < 1000) {
+                if (num % 100 === 0) {
+                    return dict[num / 100] + " " + dict[100];
+                } else {
+                    return dict[Math.floor(num / 100)] + " " + dict[100] + " " + convertNumberToJapanese(num % 100, dict);
+                }
+            } else if (num < 10000) {
+                if (num % 1000 === 0) {
+                    return dict[num / 1000] + " " + dict[1000];
+                } else {
+                    return dict[Math.floor(num / 1000)] + " " + dict[1000] + " " + convertNumberToJapanese(num % 1000, dict);
+                }
+            } else {
+                const man = Math.floor(num / 10000);
+                const rest = num % 10000;
+                if (rest === 0) {
+                    return convertNumberToJapanese(man, dict) + " " + dict[10000];
+                } else {
+                    return convertNumberToJapanese(man, dict) + " " + dict[10000] + " " + convertNumberToJapanese(rest, dict);
+                }
+            }
+        }
+
+        function convertNumberToJapaneseCorrected(num, dict) {
+            if (num === 0) return dict["0"];
+            let result = "";
+            const units = [
+                { value: 100000000, kanji: "億", hiragana: "おく", romaji: "oku" },
+                { value: 10000, kanji: "万", hiragana: "まん", romaji: "man" },
+                { value: 1000, kanji: "千", hiragana: "せん", romaji: "sen" },
+                { value: 100, kanji: "百", hiragana: "ひゃく", romaji: "hyaku" },
+                { value: 10, kanji: "十", hiragana: "じゅう", romaji: "juu" },
+            ];
+
+            for (const unit of units) {
+                const unitValue = Math.floor(num / unit.value);
+                if (unitValue > 0) {
+                    result += (unitValue > 1 ? convertNumberToJapaneseCorrected(unitValue, dict) + " " : "") + dict[unit.value] + " ";
+                    num -= unitValue * unit.value;
+                }
+            }
+
+            if (num > 0) {
+                result += dict[num];
+            }
+
+            return result.trim();
+        }
+
+        async function fetchExchangeRate() {
+            const storedRate = localStorage.getItem('exchangeRate');
+            const storedTime = localStorage.getItem('exchangeRateTime');
+            const oneDay = 24 * 60 * 60 * 1000;
+
+            if (storedRate && storedTime && (new Date().getTime() - new Date(storedTime).getTime()) < oneDay) {
+                return JSON.parse(storedRate);
+            }
+
+            const response = await fetch('https://v6.exchangerate-api.com/v6/d770a110ab9c8ea5a0cf76b9/latest/USD');
+            const data = await response.json();
+            if (data.result === 'success') {
+                localStorage.setItem('exchangeRate', JSON.stringify(data.conversion_rates));
+                localStorage.setItem('exchangeRateTime', new Date().toISOString());
+                return data.conversion_rates;
+            } else {
+                throw new Error('Failed to fetch exchange rate');
+            }
+        }
+
+        async function displayExchangeRate() {
+            const rateData = await fetchExchangeRate();
+            const exchangeRate = rateData.JPY;
+            document.getElementById("exchange-rate").textContent = `1 USD = ${exchangeRate} JPY`;
+        }
+
+        function formatNumberWithCommas(number) {
+            return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        function handleInput(event) {
+            const input = event.target;
+            const value = input.value.replace(/,/g, '');
+            if (!isNaN(value) && value !== "") {
+                input.value = formatNumberWithCommas(value);
+            }
+        }
+
+        async function convertCurrency() {
+            const rateData = await fetchExchangeRate();
+            const amount = parseFloat(document.getElementById("amount").value.replace(/,/g, ''));
+            const currency = document.getElementById("currency").value;
+            let result, kanji, hiragana, romaji;
+
+            if (currency === "usd") {
+                result = Math.ceil(amount * rateData.JPY);
+                kanji = convertNumberToJapaneseCorrected(result, kanjiDict);
+                hiragana = convertNumberToJapaneseCorrected(result, hiraganaDict);
+                romaji = convertNumberToJapaneseCorrected(result, romajiDict);
+            } else {
+                result = amount / rateData.JPY;
+                kanji = convertNumberToJapaneseCorrected(Math.floor(result), kanjiDict);
+                hiragana = convertNumberToJapaneseCorrected(Math.floor(result), hiraganaDict);
+                romaji = convertNumberToJapaneseCorrected(Math.floor(result), romajiDict);
+            }
+
+            document.getElementById("result").textContent = formatNumberWithCommas(result.toFixed(2));
+            document.getElementById("kanji").textContent = kanji;
+            document.getElementById("hiragana").textContent = hiragana;
+            document.getElementById("romaji").textContent = romaji;
+        }
+
+        window.onload = displayExchangeRate;
+    </script>
+</head>
+<body>
+    <div class="converter">
+        <div class="exchange-rate" id="exchange-rate"></div>
+        <h1>Currency Converter</h1>
+        <input type="text" id="amount" placeholder="Enter amount" required oninput="handleInput(event)">
+        <select id="currency">
+            <option value="usd">USD to JPY</option>
+            <option value="jpy">JPY to USD</option>
+        </select>
+        <button onclick="convertCurrency()">Convert</button>
+        <div class="result">
+            <p><span>Converted Amount:</span> <span id="result"></span></p>
+            <p><span>Kanji:</span> <span id="kanji"></span></p>
+            <p><span>Hiragana:</span> <span id="hiragana"></span></p>
+            <p><span>Romaji:</span> <span id="romaji"></span></p>
+        </div>
+    </div>
+</body>
+</html>
