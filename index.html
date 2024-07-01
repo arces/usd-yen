@@ -140,9 +140,21 @@
           const count = Math.floor(num / unit.value);
           if (count > 0) {
             if (count > 1) {
-              result.kanji += japaneseNumbers[count.toString()].kanji;
-              result.hiragana += japaneseNumbers[count.toString()].hiragana;
-              result.romaji += japaneseNumbers[count.toString()].romaji + " ";
+              const countStr = count.toString();
+              if (japaneseNumbers[countStr]) {
+                result.kanji += japaneseNumbers[countStr].kanji;
+                result.hiragana += japaneseNumbers[countStr].hiragana;
+                result.romaji += japaneseNumbers[countStr].romaji + " ";
+              } else {
+                // Handle multi-digit numbers not in japaneseNumbers
+                for (let i = 0; i < countStr.length; i++) {
+                  const digit = japaneseNumbers[countStr[i]];
+                  result.kanji += digit.kanji;
+                  result.hiragana += digit.hiragana;
+                  result.romaji +=
+                    digit.romaji + (i < countStr.length - 1 ? " " : "");
+                }
+              }
             }
             result.kanji += unit.kanji;
             result.hiragana += unit.hiragana;
@@ -152,9 +164,21 @@
         }
 
         if (num > 0) {
-          result.kanji += japaneseNumbers[num.toString()].kanji;
-          result.hiragana += japaneseNumbers[num.toString()].hiragana;
-          result.romaji += japaneseNumbers[num.toString()].romaji;
+          const numStr = num.toString();
+          if (japaneseNumbers[numStr]) {
+            result.kanji += japaneseNumbers[numStr].kanji;
+            result.hiragana += japaneseNumbers[numStr].hiragana;
+            result.romaji += japaneseNumbers[numStr].romaji;
+          } else {
+            // Handle remaining multi-digit numbers not in japaneseNumbers
+            for (let i = 0; i < numStr.length; i++) {
+              const digit = japaneseNumbers[numStr[i]];
+              result.kanji += digit.kanji;
+              result.hiragana += digit.hiragana;
+              result.romaji +=
+                digit.romaji + (i < numStr.length - 1 ? " " : "");
+            }
+          }
         }
 
         return result;
